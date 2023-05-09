@@ -1,0 +1,55 @@
+# Create a Lambda Function with CloudFormation
+
+# AWS template format version defines the format of the CloudFormation template
+AWSTemplateFormatVersion: "2010-09-09"
+
+# Description section is used to describe the template
+Description: >
+  This CloudFormation template creates simple Lambda function
+
+# Resources section defines the resources that will be created
+Resources:
+  # LamdbdaFuntionRole is an IAM role that will be used by the Lambda function
+  LamdbdaFuntionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LamdbdaFuntionRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # LambdaFunction is the Lambda function that will be created
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: LambdaFunction
+      Runtime: nodejs16.x
+      Code:
+        ZipFile: |
+          exports.handler = async event => {
+            const response = {
+              statusCode: 200,
+              body: JSON.stringify({
+                greeting: `Hello, ${event.name}.`,
+                triple: `Three times ${event.number} is ${event.number * 3},
+                environment: process.env.ENVIRONMENT,
+              }),
+            };
+
+            return response;
+          };
+      Handler: index.handler
+      Environment:
+        Variables:
+          ENVIRONMENT: "development"
+      Role: !GetAtt LamdbdaFuntionRole.Arn
+      Timeout: 5
+      MemorySize: 1024
